@@ -423,7 +423,6 @@
     const id=forceId||(Date.now()+Math.floor(Math.random()*1000));
     const tabObj={id,name:null,content:initialContent,element:null,filename:filename||null};
     tabs.push(tabObj);
-    renumberTabsDOM();
 
     const tabEl=document.createElement('div');
     tabEl.className='tab';
@@ -468,8 +467,8 @@
     });
   }
 
-  function activateTab(id){
-    if(activeTabId===id) return;
+  function activateTab(id, force=false){
+    if(activeTabId===id && !force) return;
     document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
     const tObj=tabs.find(x=>x.id===id);
     if(!tObj) return;
@@ -512,6 +511,7 @@
     if(filename) t.filename=filename;
     renumberTabsDOM();
     if(monacoIsReady&&editor) editor.setValue(t.content);
+    activateTab(t.id, true);
     scheduleAutoSave();
   };
   window.setEditorContentFromHost=function(c,f){ window.openFileInEditor(c,f); };
@@ -591,6 +591,11 @@
       lightbulb:{enabled:true}
     });
 
+    /* ─── Expose editor globally so host/external scripts can call editor.getValue() ─── */
+    window.editor = editor;
+    window.getEditorValue = function(){ return editor ? editor.getValue() : ''; };
+    window.setEditorValue = function(text){ if(editor) editor.setValue(text||''); };
+
     monaco.languages.registerCompletionItemProvider('lua',{
       provideCompletionItems:function(){
         return{suggestions:[
@@ -614,7 +619,7 @@
 
     if(!restored){
       const id=Date.now();
-      const tabObj={id,name:'Script 1',content:'-- Thanks for using\nprint("Were on top")\n',element:null,filename:null};
+      const tabObj={id,name:'Script 1',content:'-- Rauma exec\n-- #1 Safe Executor\nprint("an rau ma pha duong tau")\n',element:null,filename:null};
       tabs.push(tabObj);
       const tabEl=document.createElement('div');
       tabEl.className='tab active'; tabEl.dataset.id=id; tabEl.draggable=true;
